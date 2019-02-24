@@ -6,23 +6,23 @@ import color_utils
 import itertools
 from keys import *
 import os
+import sys
 
 # I/O
-input_filename = 'input_images/smw_boo_input.png'
-output_directory = './outputs'
-output_filename = output_directory + '/boo.svg'
-if not os.path.exists(output_directory):
-    os.makedirs(output_directory)
+input_filename = sys.argv[1]
+output_filename = input_filename + '.svg'
 scale = 10
 
 # Load Image
-img_rgb = Image.open(input_filename)
+img_input = Image.open(input_filename)
+img_rgb = img_input.convert('RGB')
 img_yuv = img_rgb.convert('YCbCr')
 pixels_rgb = img_rgb.load()
 pixels_yuv = img_yuv.load()
 
 #Create graph
 similarity_graph = nx.Graph()
+print('Created similarity graph')
 
 #TODO: check channels, range, other error possibilities (for the below 2 steps)
 
@@ -145,6 +145,8 @@ for x in range(img_yuv.width):
 
 #visualizations.render_as_pygame_screen(similarity_graph, img_yuv.width, img_yuv.height, scale, "Voronoi Before Removing Valence 2")
 
+print('Created cells')
+
 # calculate valencies of voronoi cell vertices
 valency = {}
 for i in range(img_yuv.width):
@@ -169,6 +171,8 @@ for i in range(img_yuv.width):
 
 #visualizations.render_as_pygame_screen(similarity_graph, img_yuv.width, img_yuv.height, scale, "Voronoi After Removing Valence 2")
 
+
+print('Processing')
 
 num_iterations = 4
 num_different_colors_threshold = 3
@@ -243,5 +247,8 @@ for iteration in range(num_iterations):
                     Q_R.append(p_r)
         similarity_graph.nodes[node][VORONOI_CELL_VERTICES] = Q_R
 
+print('Complete, saving')
+
 #visualizations.render_as_pygame_screen(similarity_graph, img_yuv.width, img_yuv.height, scale, "Voronoi After Chaikin")
 visualizations.render_as_svg(similarity_graph, img_yuv.width, img_yuv.height, scale, output_filename)
+print("Now run: convert -size {}x{} '{}' '{}.png'".format(img_yuv.width * scale, img_yuv.height * scale, output_filename, output_filename))
